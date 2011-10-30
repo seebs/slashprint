@@ -1,0 +1,9 @@
+2011/10/29:
+	* Use ... for variadic functions
+
+2011/10/29: (0.2)
+	* Fix table recursive references.
+
+2011/10/29: (0.1)
+	* Initial release
+

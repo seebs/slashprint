@@ -1,0 +1,23 @@
+Identifier = "SlashPrint"
+
+Version = "VERSION"
+
+Email = "seebs@seebs.net"
+
+Name = {
+  English = "SlashPrint",
+  French = "SlashPrint",
+  German = "SlashPrint",
+}
+NameShort = "SlashPrint"
+
+Description = {
+  English = "A /print command to evaluate lua expressions"
+}
+
+RunOnStartup = {
+  "SlashPrint.lua"
+}
+
+Environment = "1.5"
+
