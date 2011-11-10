@@ -1,4 +1,4 @@
-VERSION=0.2
+VERSION=0.3
 PACKAGE=SlashPrint
 RIFT=/c/games/RIFT Game/Interface/AddOns
 

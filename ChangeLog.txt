@@ -1,3 +1,6 @@
+2011/11/09:
+	* Version bump for 1.6 support (toc updated)
+
 2011/10/29:
 	* Use ... for variadic functions
 

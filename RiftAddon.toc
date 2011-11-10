@@ -19,5 +19,5 @@ RunOnStartup = {
   "SlashPrint.lua"
 }
 
-Environment = "1.5"
+Environment = { "1.5", "1.6" }
 
