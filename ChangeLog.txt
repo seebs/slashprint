@@ -1,3 +1,19 @@
+2012/03/02:
+	* Cap output.
+
+2011/11/18:
+	* Bugfix for arg processing.
+
+2011/11/16:
+	* Add "-d" option to limit depth of table exploration.
+	* Bump to 0.5.
+	* Clean up output a little more.
+
+2011/11/12:
+	* Version bump to 0.4
+	* Print tostring(val) for functions, userdata, threads so you can
+	  tell them apart.
+
 2011/11/09:
 	* Version bump for 1.6 support (toc updated)
 

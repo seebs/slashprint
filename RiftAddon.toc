@@ -4,6 +4,9 @@ Version = "VERSION"
 
 Email = "seebs@seebs.net"
 
+Dependencies = { LibGetOpt = { "required", "before" } }
+Embed = { LibGetOpt = true }
+
 Name = {
   English = "SlashPrint",
   French = "SlashPrint",
