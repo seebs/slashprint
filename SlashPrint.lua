@@ -1,15 +1,22 @@
 --[[ SlashPrint
      A /print command to evaluate lua expressions
 
+     Also a dump function that drops things into a table.
+
 ]]--
 
 local addoninfo, SlashPrint = ...
 
 SlashPrint.aborted = false
-SlashPrint.linemax = 700
+SlashPrint.maxlines = 10000
+SlashPrint.maxdepth = 10
 
 function SlashPrint.printf(fmt, ...)
   print(string.format(fmt or 'nil', ...))
+end
+
+function SlashPrint.append(tab, fmt, ...)
+  table.insert(tab, string.format(fmt or 'nil', ...))
 end
 
 function SlashPrint.stringify(val)
@@ -41,8 +48,21 @@ function SlashPrint.stringify(val)
   return pretty
 end
 
-function SlashPrint.dump(val, indent, comma)
+function SlashPrint.empty(tab)
+  for k, v in pairs(tab) do
+    if v ~= nil or SlashPrint.verbose then
+      return false
+    end
+  end
+  return true
+end
+
+function SlashPrint.dump(tab, val, indent, comma)
   local t = type(val)
+  if not indent then
+    SlashPrint.visited = {}
+    indent = 0
+  end
   local ifmt = string.format("%%%ds", (indent + 1) * 2)
   local istr = string.format(ifmt, "")
   local cstr = comma and "," or ""
@@ -52,88 +72,110 @@ function SlashPrint.dump(val, indent, comma)
     end
     return
   end
-  if SlashPrint.linecount >= 700 then
-    SlashPrint.printf("... Too many lines, stopping.")
+  if #tab >= SlashPrint.maxlines then
+    SlashPrint.append(tab, "... Too many lines, stopping.")
     SlashPrint.aborted = true
     return
   end
   if      t == 'table' then
     SlashPrint.visited[val] = true
     -- and let the trailing bit handle this
+
+    if SlashPrint.empty(val) then
+      SlashPrint.append(tab, "%s  {}%s", istr, cstr)
+      return
+    end
     if indent < 1 then
-      SlashPrint.printf("%s%s", istr, "{")
-      SlashPrint.linecount = SlashPrint.linecount + 1
+      SlashPrint.append(tab, "%s%s", istr, "{")
     end
     for k, v in pairs(val) do
       if SlashPrint.aborted then
         break
       end
-      if SlashPrint.linecount >= SlashPrint.linemax then
-	SlashPrint.printf("... Too many lines, stopping.")
+      if #tab >= SlashPrint.maxlines then
+	SlashPrint.append(tab, "... Too many lines, stopping.")
 	SlashPrint.aborted = true
         break
       end
       pretty_k = SlashPrint.stringify(k)
       if type(v) == 'table' then
 	if SlashPrint.visited[v] then
-          SlashPrint.printf("%s  %s: { %s already visited }", istr, pretty_k, tostring(v))
-          SlashPrint.linecount = SlashPrint.linecount + 1
+          SlashPrint.append(tab, "%s  %s: { %s already visited }", istr, pretty_k, tostring(v))
 	elseif indent + 1 >= SlashPrint.maxdepth then
-          SlashPrint.printf("%s  %s: { %s (depth limit reached) }", istr, pretty_k, tostring(v))
-          SlashPrint.linecount = SlashPrint.linecount + 1
+          SlashPrint.append(tab, "%s  %s: { %s (depth limit reached) }", istr, pretty_k, tostring(v))
 	else
-          SlashPrint.printf("%s  %s: {", istr, pretty_k)
-          SlashPrint.linecount = SlashPrint.linecount + 1
-	  SlashPrint.dump(v, indent + 1, true)
-          SlashPrint.printf("%s  }%s", istr, cstr)
-          SlashPrint.linecount = SlashPrint.linecount + 1
+	  if SlashPrint.empty(v) then
+            SlashPrint.append(tab, "%s  %s: {},", istr, pretty_k)
+	  else
+            SlashPrint.append(tab, "%s  %s: {", istr, pretty_k)
+	    SlashPrint.dump(tab, v, indent + 1, true)
+            SlashPrint.append(tab, "%s  },", istr)
+	  end
 	end
       else
-        pretty_v = SlashPrint.stringify(v)
-        SlashPrint.printf("%s  %s: %s,", istr, pretty_k, pretty_v)
-	SlashPrint.linecount = SlashPrint.linecount + 1
+        if v ~= nil or SlashPrint.verbose then
+          pretty_v = SlashPrint.stringify(v)
+          SlashPrint.append(tab, "%s  %s: %s,", istr, pretty_k, pretty_v)
+        end
       end
     end
     if indent < 1 then
-      SlashPrint.printf("%s}%s", istr, cstr)
+      SlashPrint.append(tab, "%s}%s", istr, cstr)
     end
   else
     local pretty = SlashPrint.stringify(val)
-    SlashPrint.printf("%s%s%s", istr, pretty, cstr)
-    SlashPrint.linecount = SlashPrint.linecount + 1
+    SlashPrint.append(tab, "%s%s%s", istr, pretty, cstr)
   end
 end
 
 function SlashPrint.slashcommand(args)
-  SlashPrint.linecount = 0
   SlashPrint.aborted = false
   if not args then
     SlashPrint.printf("Usage error.")
     return
   end
-  SlashPrint.maxdepth = args['d'] or 10
-  local func, error = loadstring("return { " .. args['leftover'] .. " }")
+  SlashPrint.maxdepth = args.d or 10
+  SlashPrint.verbose = args.v
+  local func, error = loadstring("return { " .. args.leftover .. " }")
   SlashPrint.visited = {}
   if func then
     local status, val = pcall(func)
+    local pretty
     if status then
       SlashPrint.printf("%s:", args['leftover'])
       SlashPrint.visited[val] = true
-      local x = table.getn(val)
-      if x == 1 then
+      if #val == 1 then
 	-- we only got one arg
-        SlashPrint.dump(val[1], 0, false)
+	pretty = {}
+        SlashPrint.dump(pretty, val[1])
+	for idx, v in ipairs(pretty) do
+	  print(v)
+	  if idx > 1000 then
+	    SlashPrint.printf("... %d more lines omitted.",
+	      #pretty - 1001)
+	    break
+	  end
+	end
       else
-        SlashPrint.printf("Got %d result%s:", x, x == 1 and "" or "s")
+        SlashPrint.printf("Got %d result%s:", #val, #val == 1 and "" or "s")
         for i, v in ipairs(val) do
 	  if SlashPrint.aborted then
 	    break
 	  end
-          SlashPrint.dump(v, 0, false)
+	  pretty = {}
+          SlashPrint.dump(pretty, v)
+	  for idx, v in ipairs(pretty) do
+	    print(v)
+	    if idx > 1000 then
+	      SlashPrint.printf("... %d more lines omitted.",
+	      	#pretty - 1001)
+	      break
+	    end
+	  end
         end
       end
       if SlashPrint.aborted then
-        SlashPrint.printf("Stopped after %d lines.", SlashPrint.linecount)
+        SlashPrint.printf("Stopped after %d lines.", #pretty)
       end
     else
       SlashPrint.printf("Error evaluating <%s>: %s", args['leftover'], val)
@@ -143,4 +185,4 @@ function SlashPrint.slashcommand(args)
   end
 end
 
-Library.LibGetOpt.makeslash("d#", "SlashPrint", "print", SlashPrint.slashcommand)
+Library.LibGetOpt.makeslash("d#v", "SlashPrint", "print", SlashPrint.slashcommand)

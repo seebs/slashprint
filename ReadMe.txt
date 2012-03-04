@@ -3,7 +3,15 @@ tables (though it isn't much good at tables where a key is another table,
 so don't do that), it can't display functions or userdata or whatever,
 but at least it knows it.  Handy also as a pocket calculator.
 
-Takes one option, "-d #", to specify a maximum depth of table dumping.
+Takes options:
+	-d #	to specify a maximum depth of table dumping.
+	-v	print nil-valued table members
 
-Output will be terminated at ~700 lines of output to avoid a wonderful
-crash case I developed.
+You can build a table of up to about 10k lines with this.  However, printed
+output is capped at around 1k lines due to a crash.
+
+You can obtain the .data.dump() method from Inspect.Addon.Detail('SlashPrint')
+and use it to populate arrays:
+	dump(target, value)
+will insert lines into target which represent value.
+

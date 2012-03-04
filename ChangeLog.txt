@@ -1,3 +1,8 @@
+2012/03/03:
+	* Improve output cap logic
+	* Expose the "dump" logic for dumping into arrays.
+	* Add -v option, default to not displaying nil-valued table entries.
+
 2012/03/02:
 	* Cap output.
 
