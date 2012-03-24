@@ -10,6 +10,7 @@ local addoninfo, SlashPrint = ...
 SlashPrint.aborted = false
 SlashPrint.maxlines = 10000
 SlashPrint.maxdepth = 10
+SlashPrint.maxitems = 1000
 
 function SlashPrint.printf(fmt, ...)
   print(string.format(fmt or 'nil', ...))
@@ -92,7 +93,13 @@ function SlashPrint.dump(tab, val, indent, comma)
     if indent < 1 then
       SlashPrint.append(tab, "%s%s", istr, "{")
     end
+    local counter = 1
     for k, v in pairs(val) do
+      if counter > SlashPrint.maxitems then
+	SlashPrint.append(tab, "%s  ...", istr);
+        break
+      end
+      counter = counter + 1
       if SlashPrint.aborted then
         break
       end
@@ -139,6 +146,7 @@ function SlashPrint.slashcommand(args)
     return
   end
   SlashPrint.maxdepth = args.d or 10
+  SlashPrint.maxitems = args.m or 1000
   SlashPrint.verbose = args.v
   local func, error = loadstring("return { " .. args.leftover .. " }")
   SlashPrint.visited = {}
@@ -189,4 +197,4 @@ function SlashPrint.slashcommand(args)
   end
 end
 
-Library.LibGetOpt.makeslash("d#v", "SlashPrint", "print", SlashPrint.slashcommand)
+Library.LibGetOpt.makeslash("d#m#v", "SlashPrint", "print", SlashPrint.slashcommand)

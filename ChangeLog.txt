@@ -1,5 +1,6 @@
 2012/03/23:
 	* Print identifier-like keys as "foo =".
+	* Add -m to limit number of members to print.
 
 2012/03/03:
 	* Improve output cap logic

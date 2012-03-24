@@ -5,6 +5,7 @@ but at least it knows it.  Handy also as a pocket calculator.
 
 Takes options:
 	-d #	to specify a maximum depth of table dumping.
+	-m #	to specify a maximum number of members to print per table
 	-v	print nil-valued table members
 
 You can build a table of up to about 10k lines with this.  However, printed
