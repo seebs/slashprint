@@ -19,13 +19,17 @@ function SlashPrint.append(tab, fmt, ...)
   table.insert(tab, string.format(fmt or 'nil', ...))
 end
 
-function SlashPrint.stringify(val)
+function SlashPrint.stringify(val, tablekey)
   local t = type(val)
   local pretty
   if     t == 'table' then
     pretty = "<table>"
   elseif t == 'string' then
-    pretty = string.format("\"%s\"", val)
+    if tablekey and string.match(val, '^[_%a][_%a%d]*$') then
+      pretty = string.format("%s", val)
+    else
+      pretty = string.format("\"%s\"", val)
+    end
   elseif t == 'function' then
     pretty = tostring(val)
   elseif t == 'boolean' then
@@ -97,25 +101,25 @@ function SlashPrint.dump(tab, val, indent, comma)
 	SlashPrint.aborted = true
         break
       end
-      pretty_k = SlashPrint.stringify(k)
+      pretty_k = SlashPrint.stringify(k, true)
       if type(v) == 'table' then
 	if SlashPrint.visited[v] then
-          SlashPrint.append(tab, "%s  %s: { %s already visited }", istr, pretty_k, tostring(v))
+          SlashPrint.append(tab, "%s  %s = { %s already visited }", istr, pretty_k, tostring(v))
 	elseif indent + 1 >= SlashPrint.maxdepth then
-          SlashPrint.append(tab, "%s  %s: { %s (depth limit reached) }", istr, pretty_k, tostring(v))
+          SlashPrint.append(tab, "%s  %s = { %s (depth limit reached) }", istr, pretty_k, tostring(v))
 	else
 	  if SlashPrint.empty(v) then
-            SlashPrint.append(tab, "%s  %s: {},", istr, pretty_k)
+            SlashPrint.append(tab, "%s  %s = {},", istr, pretty_k)
 	  else
-            SlashPrint.append(tab, "%s  %s: {", istr, pretty_k)
+            SlashPrint.append(tab, "%s  %s = {", istr, pretty_k)
 	    SlashPrint.dump(tab, v, indent + 1, true)
             SlashPrint.append(tab, "%s  },", istr)
 	  end
 	end
       else
         if v ~= nil or SlashPrint.verbose then
-          pretty_v = SlashPrint.stringify(v)
-          SlashPrint.append(tab, "%s  %s: %s,", istr, pretty_k, pretty_v)
+          pretty_v = SlashPrint.stringify(v, true)
+          SlashPrint.append(tab, "%s  %s = %s,", istr, pretty_k, pretty_v)
         end
       end
     end

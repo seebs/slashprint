@@ -1,3 +1,6 @@
+2012/03/23:
+	* Print identifier-like keys as "foo =".
+
 2012/03/03:
 	* Improve output cap logic
 	* Expose the "dump" logic for dumping into arrays.
