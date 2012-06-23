@@ -125,7 +125,7 @@ function SlashPrint.dump(tab, val, indent, comma)
 	end
       else
         if v ~= nil or SlashPrint.verbose then
-          pretty_v = SlashPrint.stringify(v, true)
+          pretty_v = SlashPrint.stringify(v)
           SlashPrint.append(tab, "%s  %s = %s,", istr, pretty_k, pretty_v)
         end
       end

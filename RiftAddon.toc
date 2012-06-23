@@ -2,7 +2,7 @@ Identifier = "SlashPrint"
 
 Version = "VERSION"
 
-Email = "seebs@seebs.net"
+Email = "EMAIL"
 
 Dependencies = { LibGetOpt = { "required", "before" } }
 Embed = { LibGetOpt = true }
